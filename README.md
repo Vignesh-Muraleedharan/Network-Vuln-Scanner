@@ -1,145 +1,183 @@
 Network Vulnerability Scanner
-A comprehensive network scanning tool that performs port scanning and vulnerability detection using multiple CVE databases.
+
+A lightweight network vulnerability scanner that discovers hosts on a network, enumerates open ports/services, and correlates findings with CVE information. Designed for penetration testers, red teamers, and security hobbyists who want an automated first pass at mapping vulnerabilities in a target network.
+
+Warning: Only scan systems you own or have explicit written permission to test. Unauthorized scanning can be illegal and unethical.
 
 Features
-Multiple Scan Types
-Automatic scan (ports 1-1024)
-Manual scan (custom port count)
-Custom scan (specific port range with custom nmap arguments)
-Vulnerability Detection
-VulDB API integration
-CVE CIRCL API integration
-pyCVESearch library support
-Export Capabilities
-Export open ports to CSV
-Export vulnerabilities to CSV with timestamps
-Clean Output
-Formatted console output
-Progress indicators
-Structured vulnerability reports
-Prerequisites
-Python 3.7 or higher
-Nmap installed on your system
-Linux: sudo apt-get install nmap
-macOS: brew install nmap
-Windows: Download from nmap.org
+
+Network host discovery (single IP, range, or CIDR)
+
+Port scanning (via nmap integration)
+
+Service identification and basic banner collection
+
+CVE lookup and context using pycvesearch and external vulnerability databases
+
+CSV output summarizing findings
+
+Configurable via environment variables and .env file
+
+Requirements
+
+Python 3.10+ (3.8+ may work, but 3.10+ recommended)
+
+nmap installed on the system and reachable in PATH
+
+Internet access for CVE lookups (optional if CVE features disabled)
+
+Python packages
+
+The project depends on these packages (install via pip):
+
+python-nmap (or nmap library wrapper)
+
+requests
+
+pycvesearch
+
+python-dotenv
+
+Any other packages used in the repository (check requirements.txt)
+
+If the repo does not include requirements.txt, create it with:
+
+python-nmap
+requests
+pycvesearch
+python-dotenv
+
 Installation
-Clone or download the project files
+
+Clone the repository:
+
+git clone https://github.com/Vignesh-Muraleedharan/Network-Vuln-Scanner.git
+cd Network-Vuln-Scanner
+
+
+(Recommended) Create and activate a virtual environment:
+
+python -m venv venv
+# Linux/macOS
+source venv/bin/activate
+# Windows
+venv\Scripts\activate
+
+
 Install Python dependencies:
-bash
+
 pip install -r requirements.txt
-Create a .env file in the project directory:
-bash
-cp .env .env
-Edit .env and add your API keys:
-VULDB_API_KEY=your_actual_vuldb_api_key
-CVE_API_KEY=your_cve_api_key_if_needed
+
+
+If requirements.txt is missing, use:
+
+pip install python-nmap requests pycvesearch python-dotenv
+
+
+Ensure nmap is installed on your system:
+
+Ubuntu/Debian: sudo apt install nmap
+
+macOS (Homebrew): brew install nmap
+
+Windows: download from the official Nmap site and add to PATH
+
 Configuration
-Getting API Keys
-VulDB API Key (Required for VulDB vulnerability scanning):
 
-Visit VulDB
-Create an account
-Navigate to API section
-Generate your API key
-Add it to .env file
-CVE CIRCL API (No key required):
+The scanner reads API keys and configuration from environment variables. Recommended: create a .env file in the repo root.
 
-The CVE CIRCL API is free and doesn't require authentication
+Example .env:
+
+VULDB_API_KEY=your_vuldb_api_key   # optional — if used in the code
+CVE_API_KEY=your_cve_api_key       # optional — if used by any CVE service
+OUTPUT_DIR=./output
+
+
+Change or add any other variables your code expects.
+
 Usage
-Run the scanner:
 
-bash
-python network_scanner.py
-Scan Options
-1. Automatic Scan
+Replace scanner.py with your actual main script filename if different.
 
-Scans ports 1-1024
-Quick scan for common services
-2. Manual Scan
+Basic scan of a single IP:
 
-Specify number of ports to scan from port 1
-Example: Entering "100" scans ports 1-100
-3. Custom Scan
+python scanner.py --target 192.168.1.10
 
-Specify exact port range
-Add custom nmap arguments
-Example: Ports 80-443 with arguments "-sS -O"
-Workflow
-Select scan type (1, 2, or 3)
-Enter target (IP address or domain name)
-Provide scan parameters (if applicable)
-View scan results
-Choose to save ports for vulnerability scanning
-Select vulnerability scanning API (1, 2, or 3)
-View vulnerability report
-Export results to CSV (optional)
-Output Files
-open_ports_YYYYMMDD_HHMMSS.csv - List of open ports
-vulnerabilities_YYYYMMDD_HHMMSS.csv - Vulnerability details
-Security Notes
-⚠️ Important Security Considerations:
 
-Never commit .env file - Add it to .gitignore
-Keep API keys private - Don't share or expose them
-Legal compliance - Only scan systems you own or have permission to test
-Ethical use - Use this tool responsibly and legally
+Scan a CIDR range:
+
+python scanner.py --target 192.168.1.0/24
+
+
+Scan an IP range:
+
+python scanner.py --target 192.168.1.1-254
+
+
+Examples with options (adjust flags to match actual CLI in repo):
+
+# Save output to a specific CSV
+python scanner.py --target 10.0.0.0/24 --output results.csv
+
+# Run a faster, light port scan
+python scanner.py --target 10.0.0.5 --scan-type quick
+
+# Enable CVE lookup (if supported)
+python scanner.py --target 10.0.0.0/24 --cve-lookup
+
+
+If the project is structured differently, look for an entrypoint (e.g., main.py, run.py, or scanner/) and adapt commands accordingly.
+
+Output
+
+Typical outputs include:
+
+results.csv — discovered hosts, open ports, services, and associated CVE references
+
+logs/ — runtime logs (if implemented)
+
+output/ — any JSON or additional reports
+
+CSV columns you can expect (example):
+
+host,ip,port,protocol,service,banner,cve_ids,cve_summary,scan_time
+
+How it works (high-level)
+
+Host discovery (ping/ARP/Nmap host discovery)
+
+Port/service scanning with nmap
+
+Service banner grabbing and fingerprinting
+
+CVE lookup via pycvesearch (or other configured API)
+
+Aggregate results and write CSV/report
+
 Troubleshooting
-"Nmap not found"
-Ensure nmap is installed and accessible in your PATH
-Run nmap --version to verify installation
-"DNS lookup failed"
-Check target domain/IP is correct
-Verify internet connectivity
-Try using IP address directly
-"Invalid VulDB API key"
-Verify API key is correct in .env file
-Check API key hasn't expired
-Ensure no extra spaces in .env file
-"Permission denied" errors
-Some scan types require root/administrator privileges
-Run with sudo on Linux/macOS: sudo python network_scanner.py
-Run as Administrator on Windows
-Example Output
-============================================================
-   NETWORK VULNERABILITY SCANNER
-============================================================
 
-Select scan type:
-  [1] Automatic scan (ports 1-1024)
-  [2] Manual scan (specify port count)
-  [3] Custom scan (specify port range and arguments)
+nmap not found: ensure nmap is installed and in your system PATH.
 
-Enter choice (1-3): 1
+ModuleNotFoundError: run pip install -r requirements.txt and ensure virtualenv is activated.
 
-Enter target IP or website: example.com
-✓ DNS resolved: example.com → 93.184.216.34
+CVE lookups failing: check your .env API keys, and ensure external services are reachable from your network.
 
-⟳ Scanning ports 1-1024 on 93.184.216.34...
+Permission errors: running nmap scans may require elevated privileges for some options — check flags and avoid running as root unless necessary.
 
-────────────────────────────────────────────────────────────
-  SCAN RESULTS
-────────────────────────────────────────────────────────────
+Development & Contributing
 
-┌─ Host: 93.184.216.34
-│  Hostname: example.com
-│  State: up
-└─
+Contributions welcome. Suggested workflow:
 
-  Protocol: TCP
-  ──────────────────────────────────────────────────
-  PORT       STATE        SERVICE
-  ──────────────────────────────────────────────────
-  80         open         http (Apache 2.4)
-  443        open         https (Apache 2.4)
-Dependencies
-python-nmap: Python wrapper for nmap
-requests: HTTP library for API calls
-pycvesearch: CVE search library
-python-dotenv: Environment variable management
-License
-This tool is for educational and authorized security testing purposes only.
+Fork the repo
 
-Disclaimer
-This tool should only be used on systems you own or have explicit permission to test. Unauthorized scanning of networks or systems is illegal and unethical. The authors are not responsible for any misuse of this tool.
+Create a feature branch (git checkout -b feature/fancy-scan)
 
+Implement changes and add tests if applicable
+
+Open a pull request with a clear description
+
+Please follow standard security practices: avoid committing API keys or secrets.
+
+Security & Legal
+
+This tool is intended for authorized security testing and education. Scanning, probing, or attacking networks you do not own or have permission to test can be illegal. Use responsibly.
